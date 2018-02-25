@@ -2,6 +2,7 @@
 
 while :
 do
-  DATE=$(date +"%Y-%m-%d_%H%M")
-  raspistill -t 900000 -tl 30000 -o /home/pi/camera/$DATE%d.jpg
+  DATE=$(date +"%Y-%m-%d_%H%M%S")
+  raspistill -n -q 100 -t 100 -o /home/pi/camera/$DATE.jpg
+  sleep 30
 done
