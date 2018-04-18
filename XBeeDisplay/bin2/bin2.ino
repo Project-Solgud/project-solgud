@@ -27,7 +27,6 @@ void setup()
 //  pinMode(4, OUTPUT);
 //  digitalWrite(4, HIGH);
 
-  pinMode(led, OUTPUT);
   Serial.begin(9600);
   while (!Serial) ; // Wait for serial port to be available
   if (!rf95.init())

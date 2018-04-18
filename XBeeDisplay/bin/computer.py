@@ -21,12 +21,18 @@ if __name__ == "__main__":
     frame_bytes = bytearray(b'')
 
     while True:
+        count = 0
         packetData = ser.read() # TODO packet size
-        if sensorData = 0xff: # TODO start byte
+        if sensorData = 0xfd: # TODO start byte
             start = True
+        if sensorData = 0xf0:
+            count++
+        if count > 16:
+            print(str(ord(sensorData)) + " ")
+            imgFile.write(sensorData)
         if start:
             frame_bytes.append(sensorData)
-        if sensorData = 0xe0: # TODO end byte
+        if sensorData = 0xfe: # TODO end byte
             break
 
         writer.writerow(parse_frame(frame_bytes))
