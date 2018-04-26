@@ -4,6 +4,7 @@
 #include "Adafruit_SI1145.h"
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
+#include <RH_RF95.h>
 
 #define BMP_SCK 13
 #define BMP_MISO 12
@@ -13,15 +14,21 @@
 Adafruit_SI1145 uv = Adafruit_SI1145();
 Adafruit_BMP280 bmp; // I2C
 Adafruit_MMA8451 mma = Adafruit_MMA8451();
+RH_RF95 rf95;
 
-uint8_t buf[200];
+uint8_t buf[151];
 
 int length;
-long long int id = 0;
+int id = 0;
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600); //May need to decrease baud
+
+  while (!Serial) ; // Wait for serial port to be available
+  if (!rf95.init())
+    Serial.println("init failed");
+  
   Serial.println(F("All Sensor test"));
 
   if (! uv.begin()) {
@@ -51,14 +58,22 @@ void loop() {
 
   if(Serial.available()){
     int incomingByte = Serial.read();
+    if(incomingByte == 0 || incomingByte == 0xfd || incomingByte == 0xfe || incomingByte == 0xf0){
+      incomingByte = 1;
+    }
     buf[length] = incomingByte;
     length++;
 
-    if(length == 200){
+    if(length == 151){
 
       String message = "";
 
-      message += (char) 0xff;
+      message += (char) 0xfd;
+
+      message += (String(id));
+      message += (char) 0xf0;
+
+      id++;
 
       length = 0;
 
@@ -95,19 +110,26 @@ void loop() {
       message += event.acceleration.z;
       message += (char) 0xf0;
 
-      uint8_t orientation = mma.getOrientation();
+      message += mma.getOrientation();
       message += (char) 0xf0;
 
-      int gasVal = analogRead(0);
+      message += analogRead(0);
+      message += (char) 0xf0;
+
+      message += (char*) buf;
+      
       message += (char) 0xfe;
+
+      uint8_t mBuffer[message.length()+1];
+
+      message.toCharArray(mBuffer, message.length()+1);
+
+      rf95.send(mBuffer, sizeof(mBuffer));
+
+      rf95.waitPacketSent();
+      Serial.println(message);
 
     }
   }
 
-
-  int val;
-    val=analogRead(0);//Read Gas value from analog 0
-    Serial.println(val,DEC);//Print the value to serial port
-    Serial.println("===================");
-    delay(5000);
 }
